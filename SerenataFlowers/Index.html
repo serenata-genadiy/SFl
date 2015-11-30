@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Serenata Flower</title>
+</head>
+<body>
+
+    <!--    <label id="IdCart"></label>-->
+    
+    <div>
+        <h2>All Products</h2>
+        <ul id="products" />
+    </div>
+     
+    
+    <div>
+        <h2>My cart</h2>
+        <ul id="myProducts" />
+    </div>
+    <button type="button" onclick='makeClear();' >Clear</button>
+
+<!--<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>-->
+    <script src="Scripts/jquery-1.10.2.js"></script>
+    <script>
+        
+        var uri = 'api/cart';
+        var idCART = "cart1";
+        var myCart = [];
+
+        $(document).ready(function () {
+            $.getJSON('api/DB')
+                .done(function (data) {
+                    // 'data' contains a list of products. It shows a list item
+                    $.each(data, function (key, item) {
+                        $('<li><button type="button" onclick="add('
+                            + item.id + ');">Order</button>'  
+                            + item.name + ': £' + item.price 
+                            + '</li>' )
+                            .appendTo($('#products'));
+                    });
+                });
+        });
+
+      
+        function updateMyCart() {
+            $('#myProducts').empty();
+            $.each(myCart, function (key, item) {
+                $('<li><button type="button" onclick="del(' + item.id + ');">Remove</button>'
+                  + item.name + ': £' + item.price + ' ( ' + item.quantity + ' units)</li>')
+                    .appendTo($('#myProducts'));
+            });
+        }
+
+        function add(p_id) {
+            
+            var Product  = new Object();            
+            Product = { id : p_id, name: '' };
+            
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: uri ,
+                data: JSON.stringify(Product),
+                dataType: "json",
+                async: true,
+                processData: true,
+                cache: false,
+                success: function (response) {                    
+                    myCart = response;
+                    updateMyCart();                    
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('add error: ' + textStatus );
+                }
+            });          
+       }
+
+        function update(i) {
+
+            var Product = new Object();
+            Product = {
+                id: 2,
+                name: 'prueba1',
+                price: 1
+            };
+
+            //Call jQuery ajax
+            $.ajax({
+                type: "PUT",
+                contentType: "application/json; charset=utf-8",
+                url: uri + '/1',
+                data: JSON.stringify(Product),
+                dataType: "json",
+                async: true,
+                processData: true,
+                cache: false,
+                success: function (msg) {
+                    alert(Product.id);                    
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('add error: ' + textStatus);
+                }
+            });
+        }
+
+    
+        function del(p_id) {
+
+            $.ajax({
+                type: 'DELETE',
+                url: uri + '/' + p_id,
+                success: function (data, textStatus, jqXHR) {
+                    alert('Deleted successfully');
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('Delete error: ' + errorThrown);
+                }
+            });
+        }
+
+        function makeClear() {
+
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: 'api/cart/clear',
+                data: '{}',
+                dataType: "json",
+                async: true,
+                processData: true,
+                cache: false,
+                success: function (response) {
+                    $('#myProducts').empty();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('add error: ' + textStatus);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
